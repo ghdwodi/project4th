@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hb.db.mapper">
+	<!-- 회원관리 -->
+	<select id="selectAllCustomer" resultType="com.hb.db.CustomerVO">
+		select * from customer_t where c_category != -1 order by c_idx
+	</select>
+	<select id="selectOneCustomer" parameterType="String" resultType="com.hb.db.CustomerVO">
+		select * from customer_t where c_idx=#{c_idx}
+	</select>
+	<select id="login" parameterType="com.hb.db.CustomerVO" resultType="com.hb.db.CustomerVO">
+		select * from customer_t where id=#{id} and pwd=#{pwd}
+	</select>
+	<select id="idcheck" parameterType="String" resultType="com.hb.db.CustomerVO">
+		select * from customer_t where id=#{id}
+	</select>
+	<insert id="join" parameterType="com.hb.db.CustomerVO">
+		insert into customer_t values(c_seq.nextval,#{id},#{pwd},#{name},#{nickname},
+			#{email},#{phone},#{mobilephone},#{addrnum},#{addr},#{addr2},
+			1,1,0,2)
+	</insert>
+	<update id="c_modify" parameterType="com.hb.db.CustomerVO">
+		update customer_t set name=#{name}, nickname=#{nickname}, email=#{email},phone=#{phone},
+			mobilephone=#{mobilephone}, addrnum=#{addrnum}, addr=#{addr}, addr2=#{addr2},c_authority=#{c_authority}
+			where c_idx=#{c_idx}
+	</update>
+	<update id="c_delete" parameterType="String">
+		update customer_t set c_category=-1 where c_idx=#{c_idx}
+	</update>
+	<select id="selectMsgList" parameterType="Map" resultType="com.hb.db.MsgVO">
+		select * from (
+			select rownum r_num, a.* from 
+			(select * from msg_t where c_idx=#{c_idx} and readchk!=-1 order by m_idx desc) a
+		) where r_num between #{begin} and #{end}
+	</select>
+	<select id="selectMsg" parameterType="String" resultType="com.hb.db.MsgVO">
+		select * from msg_t where m_idx=#{m_idx}
+	</select>
+	<select id="totalMsgcount" parameterType="String" resultType="int">
+		select count(*) from msg_t where c_idx=#{c_idx} and readchk!=-1
+	</select>
+	<select id="newMsgCount" parameterType="String" resultType="int">
+		select count(*) from msg_t where c_idx=#{c_idx} and readchk=0
+	</select>
+	<insert id="insertMsg" parameterType="com.hb.db.MsgVO">
+		insert into msg_t values(msg_seq.nextval,#{c_idx},#{c_idx_sender},#{m_content},sysdate,
+			(select nickname from customer_t where c_idx=#{c_idx}),(select nickname from customer_t where c_idx=#{c_idx_sender}),0)
+	</insert>
+	<update id="msgReadChk" parameterType="String">
+		update msg_t set readchk=1 where m_idx=#{m_idx}
+	</update>
+	<update id="deleteMsg" parameterType="String">
+		update msg_t set readchk=-1 where m_idx=#{m_idx}
+	</update>
+	
+	<!-- 게시판 관리 -->
+	<!-- 게시판 보기 -->
+	<select id="select_bbs" parameterType="Map" resultType="com.hb.db.BBS_VO">
+		select * from (
+			select rownum r_num, a.* from 
+			(select * from bbs_t where b_category=#{b_category} and deleted=0 order by b_idx desc) a
+		) where r_num between #{begin} and #{end}
+	</select>
+	<!-- 메인화면 공지 뿌리기 -->
+	<select id="select_notice_for_main" resultType="com.hb.db.BBS_VO">
+		select * from (
+			select rownum r_num, a.* from 
+			(select * from bbs_t where b_category=0 and deleted=0 order by b_idx desc) a
+		) where r_num between 1 and 5
+	</select>
+	<!-- 메인화면 뉴스 뿌리기 -->
+	<select id="select_news_for_main" resultType="com.hb.db.BBS_VO">
+		select * from (
+			select rownum r_num, a.* from 
+			(select * from bbs_t where b_category=3 and deleted=0 order by b_idx desc) a
+		) where r_num between 1 and 5
+	</select>
+	<select id="totalbbscount" parameterType="String" resultType="int">
+		select count(*) from bbs_t where b_category=#{b_category} and deleted=0
+	</select>
+	<select id="select_bbs_view" parameterType="String" resultType="com.hb.db.BBS_VO">
+		select * from bbs_t where b_idx=#{b_idx} and deleted=0
+	</select>
+	<update id="bbs_hit" parameterType="String">
+		update bbs_t set hit=hit+1 where b_idx=#{b_idx}
+	</update>
+	<insert id="bbs_insert" parameterType="com.hb.db.BBS_VO">
+		insert into bbs_t values(bbs_seq.nextval,#{title},'1111',0,#{content},#{c_idx},(select nickname from customer_t where c_idx=#{c_idx}),sysdate,#{b_category},0) 
+	</insert>
+	<delete id="bbs_delete2" parameterType="String">
+		delete from bbs_t where b_idx=#{b_idx}
+	</delete>
+	<update id="bbs_delete" parameterType="String">
+		update bbs_t set deleted=1 where b_idx=#{b_idx}
+	</update>
+	<update id="bbs_modify" parameterType="com.hb.db.BBS_VO">
+		update bbs_t set title=#{title},content=#{content} where b_idx=#{b_idx}
+	</update>
+	<select id="select_reply" parameterType="String" resultType="com.hb.db.Reply_VO">
+		select * from reply_t where b_idx=#{b_idx} order by r_date
+	</select>
+	<insert id="insert_reply" parameterType="com.hb.db.Reply_VO">
+		insert into reply_t values(reply_seq.nextval,#{b_idx},reply_group_seq.nextval,
+			0,0,#{content},#{c_idx},sysdate,(select nickname from customer_t where c_idx=#{c_idx}))
+	</insert>
+	<update id="delete_reply" parameterType="String">
+		update reply_t set lev=1 where r_idx=#{r_idx}
+	</update>
+	
+	<!-- 상담 관리 -->
+	<select id="select_all_counsel" resultType="com.hb.db.CounselVO">
+		select * from counsel_t where answered=0
+	</select>
+	<select id="select_personal_counsel" parameterType="String" resultType="com.hb.db.CounselVO">
+		select * from counsel_t where c_idx=#{c_idx}
+	</select>
+	<insert id="insert_personal_counsel" parameterType="com.hb.db.CounselVO">
+		insert into counsel_t values(counsel_seq.nextval,#{c_idx},(select name from customer_t where c_idx=#{c_idx}),
+			#{counsel_category},#{title},#{counsel_content},null,0,null,null,sysdate,null,null)
+	</insert>
+	<select id="selectOneCounsel" parameterType="String" resultType="com.hb.db.CounselVO">
+		select * from counsel_t where counsel_idx=#{counsel_idx}
+	</select>
+	<update id="answerCounsel" parameterType="com.hb.db.CounselVO">
+		update counsel_t set counsel_answer=#{counsel_answer}, answerer=#{answerer},
+			answered=1,answer_name=(select name from customer_t where c_idx=#{answerer}),
+			answer_date=sysdate	where counsel_idx=#{counsel_idx}
+	</update>
+	<update id="scoreCounsel" parameterType="com.hb.db.CounselVO">
+		update counsel_t set counsel_score=#{counsel_score},answered=2 where counsel_idx=#{counsel_idx}
+	</update>
+</mapper>
