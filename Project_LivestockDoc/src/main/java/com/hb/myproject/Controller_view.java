@@ -1,5 +1,6 @@
 package com.hb.myproject;
 
+import com.hb.db.BBS_VO;
 import com.hb.db.CounselVO;
 import com.hb.db.CustomerVO;
 import com.hb.db.DAO;
@@ -137,8 +138,8 @@ public class Controller_view
 		paging.setBeginPage();
 		paging.setEndPage();
 		paging.setMap();
-		Map<String, Integer> map = paging.getMap();
-		map.put("c_idx", Integer.parseInt(request.getParameter("c_idx")));
+		Map<String, String> map = paging.getMap();
+		map.put("c_idx", request.getParameter("c_idx"));
 		mv.addObject("msgList",dao.getMsgList(map));
 		mv.addObject("p", paging);
 		mv.addObject("c_idx", Integer.parseInt(request.getParameter("c_idx")));
@@ -191,15 +192,67 @@ public class Controller_view
 		paging.setBeginPage();
 		paging.setEndPage();
 		paging.setMap();
-//		request.getSession().setAttribute("cPage", cPage);
 		
 		System.out.println("게시판유형 : "+b_category+", 현재 페이지 : "+cPage);
 		request.getSession().setAttribute("cPage", cPage);
 		request.getSession().setAttribute("b_category", b_category);
-		Map<String, Integer> map = paging.getMap();
-		map.put("b_category", Integer.parseInt(b_category));
+		Map<String, String> map = paging.getMap();
+		map.put("b_category", b_category);
 		mv.addObject("p", paging);
 		mv.addObject("bbsVOList", dao.getBBSList(map));
+		return mv;
+	}
+	@RequestMapping(value="/search.go")
+	public ModelAndView goBBSSearch(HttpServletRequest request, HttpServletResponse response){
+		ModelAndView mv = new ModelAndView("table_views/bbs_search");
+		BBS_VO bvo = new BBS_VO();
+		String b_category = request.getParameter("b_category");
+		String cPage = request.getParameter("cPage");
+		if(cPage != null){
+			paging.setNowPage(Integer.parseInt(cPage));
+		}else{
+			cPage="1";
+			paging.setNowPage(1);
+		}
+		String search_category = request.getParameter("search_category");
+		String keyword = request.getParameter("keyword");
+		System.out.println(keyword);
+		if(search_category!=null){
+			switch (Integer.parseInt(search_category)) {
+			case 1:bvo.setTitle(keyword);break;
+			case 2:bvo.setContent(keyword);break;
+			case 3:bvo.setC_nickname(keyword);break;
+			}
+		}
+		bvo.setB_category(b_category);
+		paging.setTotalRecord(dao.getSearchCount(bvo));
+		System.out.println("총 게시물 수 : "+dao.getSearchCount(bvo));
+		paging.setTotalPage();
+		paging.setBegin();
+		paging.setEnd();
+		paging.setBeginPage();
+		paging.setEndPage();
+		paging.setMap();
+		
+		System.out.println("게시판유형 : "+b_category+", 현재 페이지 : "+cPage);
+		request.getSession().setAttribute("cPage", cPage);
+		request.getSession().setAttribute("b_category", b_category);
+		Map<String, String> map = paging.getMap();
+		if(search_category!=null){
+			switch (Integer.parseInt(search_category)) {
+			case 1:map.put("title", keyword);
+				System.out.println("제목 : "+keyword);break;
+			case 2:map.put("content", keyword);
+				System.out.println("내용 : "+keyword);break;
+			case 3:map.put("c_nickname", keyword);
+				System.out.println("글쓴이 : "+keyword);break;
+			}
+		}
+		map.put("b_category", b_category);
+		mv.addObject("p", paging);
+		mv.addObject("bbsVOList", dao.getBBSList(map));
+		mv.addObject("search_category", search_category);
+		mv.addObject("keyword", keyword);
 		return mv;
 	}
 	

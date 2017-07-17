@@ -49,7 +49,7 @@ public class DAO {
 		return template.update("c_delete",c_idx);
 	}
 	// 쪽지목록 불러오기
-	public List<MsgVO> getMsgList(Map<String, Integer> map){
+	public List<MsgVO> getMsgList(Map<String, String> map){
 		return template.selectList("selectMsgList", map);
 	}
 	// 쪽지 불러오기
@@ -105,7 +105,7 @@ public class DAO {
 	
 	//// 게시판 ////
 	// 글 목록 불러오기
-	public List<BBS_VO> getBBSList(Map<String, Integer> map){
+	public List<BBS_VO> getBBSList(Map<String, String> map){
 		return template.selectList("select_bbs",map);
 	}
 	// 공지사항 뿌리기
@@ -118,6 +118,10 @@ public class DAO {
 	// 게시글 수
 	public int getTotalCount(String b_category){
 		return template.selectOne("totalbbscount",b_category);
+	}
+	// 검색게시물 수
+	public int getSearchCount(BBS_VO bvo){
+		return template.selectOne("searchCount",bvo);
 	}
 	// 글 열람
 	public BBS_VO getBBSView(String b_idx){

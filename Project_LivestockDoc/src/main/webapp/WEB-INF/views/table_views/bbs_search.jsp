@@ -159,16 +159,16 @@
 														<li class="disabled"><a href="#">&laquo;</a></li>
 													</c:when>
 													<c:otherwise>
-														<li><a href="bbs.go?b_category=${b_category}&cPage=${p.beginPage-p.pagePerBlock}">&laquo;</a></li>
+														<li><a href="search.go?b_category=${b_category}&keyword=${keyword}&search_category=${search_category}cPage=${p.beginPage-p.pagePerBlock}">&laquo;</a></li>
 													</c:otherwise>
 												</c:choose>
 												<c:forEach var="k" begin="${p.beginPage}" end="${p.endPage}" step="1" varStatus="vs">
 													<c:choose>
 														<c:when test="${k==p.nowPage}">
-															<li class="active"><a href="bbs.go?b_category=${b_category}&cPage=${k}">${k}</a></li>
+															<li class="active"><a href="search.go?b_category=${b_category}&cPage=${k}&keyword=${keyword}&search_category=${search_category}">${k}</a></li>
 														</c:when>
 														<c:otherwise>
-															<li><a href="bbs.go?b_category=${b_category}&cPage=${k}">${k}</a></li>
+															<li><a href="search.go?b_category=${b_category}&cPage=${k}&keyword=${keyword}&search_category=${search_category}">${k}</a></li>
 														</c:otherwise>
 													</c:choose>
 												</c:forEach>
@@ -178,7 +178,7 @@
 														<li class="disabled"><a href="#">&raquo;</a></li>
 													</c:when>
 													<c:otherwise>
-														<li><a href="bbs.go?b_category=${b_category}&cPage=${p.beginPage+p.pagePerBlock}">&raquo;</a></li>
+														<li><a href="search.go?b_category=${b_category}&keyword=${keyword}&search_category=${search_category}&cPage=${p.beginPage+p.pagePerBlock}">&raquo;</a></li>
 													</c:otherwise>
 												</c:choose>
 											</ul>
@@ -190,14 +190,14 @@
 												<%-- 이전 버튼 --%>
 												<c:choose>
 													<c:when test="${p.nowPage>1}">
-														<li><a href="bbs.go?b_category=${b_category}&cPage=${p.nowPage-1}">← 이전 페이지</a></li>
+														<li><a href="search.go?b_category=${b_category}&keyword=${keyword}&search_category=${search_category}&cPage=${p.nowPage-1}">← 이전 페이지</a></li>
 													</c:when>
 												</c:choose>
 												<li>${p.nowPage}/${p.totalPage}</li>
 												<%--다음 버튼--%>
 												<c:choose>
 													<c:when test="${p.nowPage<p.totalPage}">
-														<li><a href="bbs.go?b_category=${b_category}&cPage=${p.nowPage+1}">다음 페이지 →</a></li>
+														<li><a href="search.go?b_category=${b_category}&keyword=${keyword}&search_category=${search_category}cPage=${p.nowPage+1}">다음 페이지 →</a></li>
 													</c:when>
 												</c:choose>
 											</ul>

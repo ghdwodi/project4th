@@ -60,8 +60,36 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="select_bbs" parameterType="Map" resultType="com.hb.db.BBS_VO">
 		select * from (
 			select rownum r_num, a.* from 
-			(select * from bbs_t where b_category=#{b_category} and deleted=0 order by b_idx desc) a
+			(select * from bbs_t where b_category=#{b_category} and deleted=0
+			<choose>
+				<when test="title!=null">
+					and title like '%'||#{title}||'%'
+				</when>
+				<when test="c_nickname!=null">
+					and c_nickname like '%'||#{c_nickname}||'%'
+				</when>
+				<when test="content!=null">
+					and content like '%'||#{content}||'%'
+				</when>
+			</choose>
+			order by b_idx desc) a
 		) where r_num between #{begin} and #{end}
+	</select>
+	<!-- 검색 -->
+	<select id="searchCount" parameterType="com.hb.db.BBS_VO" resultType="int">
+		select count(*) from bbs_t where b_category=#{b_category}
+		<choose>
+			<when test="title!=null">
+				and title like '%'||#{title}||'%'
+			</when>
+			<when test="c_nickname!=null">
+				and c_nickname like '%'||#{c_nickname}||'%'
+			</when>
+			<when test="content!=null">
+				and content like '%'||#{content}||'%'
+			</when>
+		</choose>
+		and deleted=0
 	</select>
 	<!-- 메인화면 공지 뿌리기 -->
 	<select id="select_notice_for_main" resultType="com.hb.db.BBS_VO">
@@ -77,15 +105,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			(select * from bbs_t where b_category=3 and deleted=0 order by b_idx desc) a
 		) where r_num between 1 and 5
 	</select>
+	<!-- 게시글 수 반환 -->
 	<select id="totalbbscount" parameterType="String" resultType="int">
 		select count(*) from bbs_t where b_category=#{b_category} and deleted=0
 	</select>
+	<!-- 글 열람 -->
 	<select id="select_bbs_view" parameterType="String" resultType="com.hb.db.BBS_VO">
 		select * from bbs_t where b_idx=#{b_idx} and deleted=0
 	</select>
+	<!-- 조회수 업데이트 -->
 	<update id="bbs_hit" parameterType="String">
 		update bbs_t set hit=hit+1 where b_idx=#{b_idx}
 	</update>
+	<!-- 글 입력 -->
 	<insert id="bbs_insert" parameterType="com.hb.db.BBS_VO">
 		insert into bbs_t values(bbs_seq.nextval,#{title},'1111',0,#{content},#{c_idx},(select nickname from customer_t where c_idx=#{c_idx}),sysdate,#{b_category},0) 
 	</insert>

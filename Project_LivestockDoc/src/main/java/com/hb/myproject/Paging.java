@@ -15,7 +15,7 @@ public class Paging {
 	int end;
 	int beginPage;
 	int endPage;
-	Map<String, Integer> map;
+	Map<String, String> map;
 
 	public Paging() {
 		this.nowPage = 1;
@@ -123,13 +123,13 @@ public class Paging {
 		return this.endPage;
 	}
 
-	public Map<String, Integer> getMap() {
+	public Map<String, String> getMap() {
 		return this.map;
 	}
 
 	public void setMap() {
-		this.map = new HashMap<String, Integer>();
-		this.map.put("begin", Integer.valueOf(this.begin));
-		this.map.put("end", Integer.valueOf(this.end));
+		this.map = new HashMap<String, String>();
+		this.map.put("begin", String.valueOf(this.begin));
+		this.map.put("end", String.valueOf(this.end));
 	}
 }
