@@ -6,8 +6,10 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Insert title here</title>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.18/themes/base/jquery-ui.css" type="text/css" />
+		<script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js"></script>
 		<script type="text/javascript">
-			$(function() {
+			/* $(function() {
 				jQuery.ajaxSettings.traditional = true;
 				$.ajax({
 					url:"Rest/mapping.do",
@@ -37,6 +39,7 @@
 						$("#loadingdiv").hide();
 					}
 				});
+				
 				$(".disease").change(function() {
 					var cmd = $(".disease:checked").val();
 					$("#loadingdiv").show();
@@ -71,7 +74,47 @@
 						}
 					});
 				});
-			});
+			}); */
+			function button_ok() {
+				if($("#testDatepicker1").val()=="" || $("#testDatepicker2").val()==""){
+					alert("날짜를 입력하세요");
+					return;
+				}
+				var cmd = $(".disease:checked").val();
+				var startdate = $("#testDatepicker1").val();
+				var enddate = $("#testDatepicker2").val();
+				$("#loadingdiv").show();
+				$.ajax({
+					url:"Rest/mapping.do",
+					type:"post",
+					data:"cmd="+cmd+"&startdate="+startdate+"&enddate="+enddate,	// 서블릿에 넘어가는 데이터
+					dataType:"json",	// 컨트롤러에서 ArrayList로 보냈으므로 json으로 받는다.
+					success:function(data){
+						$(".area").attr("fill","#FFFFCC");
+						$("#areaList").html("");
+						var items = [];
+						if(Object.keys(data).length!=0){
+							$.each(data, function(key, val) { // 배열로 저장
+								items.push(val);
+								var valarr = val.split(",");
+								var addrCode = valarr[0];
+								var addr = valarr[1];
+								var diseaseName = valarr[2];
+								var date = valarr[3];
+								$(".area[title='"+addrCode+"']").attr("fill","RED");
+								$("#areaList").append("<tr><td>"+diseaseName+"</td><td>"+addr+"</td><td>"+date+"</td></tr>")
+							});
+						}else{
+							$("#areaList").append("<tr><td colspan='3' style='text-align: center'><h3>근 1개월간 발병사례 없음</h3></td></tr>")
+						}
+						$("#loadingdiv").hide();
+					},
+					error:function(){
+						alert("지도 불러오기 실패");
+						$("#loadingdiv").hide();
+					}
+				});
+			}
 			function detrans(str){
 				var encoded_str = unescape(replaceAll(str,"\\","%"));
 				return encoded_str;
@@ -122,6 +165,22 @@
 				<tbody>
 					<tr>
 						<td>
+							시작 날짜
+						</td>
+						<td>
+							끝 날짜
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type="date" id="testDatepicker1">
+						</td>
+						<td>
+							<input type="date" id="testDatepicker2">
+						</td>
+					</tr>
+					<tr>
+						<td>
 							<input type="radio" name="disease" value="0" class="disease" checked="checked">전체
 						</td>
 						<td>
@@ -143,6 +202,10 @@
 						<td>
 							<input type="radio" name="disease" value="5" class="disease">소 브루셀라병
 						</td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><button onclick="button_ok()">조회</button></td>
 					</tr>
 				</tbody>
 			</table>

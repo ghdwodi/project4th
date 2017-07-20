@@ -8,6 +8,7 @@ import com.hb.db.MsgVO;
 import com.hb.db.Reply_VO;
 
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -176,21 +177,64 @@ public class Controller_Rest {
 	@RequestMapping(value="/mapping.do")
 	public ArrayList<String> livestockDiseaseData(HttpServletRequest request, HttpServletResponse response){
 		ArrayList<String> res = new ArrayList<String>();
+		ArrayList<String> dateList = new ArrayList<String>();
+		Calendar cal = Calendar.getInstance();
 		String cmd = request.getParameter("cmd");
+		String startdate = request.getParameter("startdate");
+		String enddate = request.getParameter("enddate");
 		System.out.println("명령 : "+cmd);
+		System.out.println(startdate+"~"+enddate);
+		if(startdate!=null){
+			startdate = startdate.substring(0, 4)+startdate.substring(5, 7)+startdate.substring(8);
+			if(enddate==null){
+				enddate = String.valueOf(cal.get(Calendar.YEAR))+"-"+String.valueOf(cal.get(Calendar.MONTH)+1)+"-"+String.valueOf(cal.get(Calendar.DAY_OF_MONTH));
+			}
+			enddate = enddate.substring(0, 4)+enddate.substring(5, 7)+enddate.substring(8);
+			System.out.println(startdate+"~"+enddate);
+			SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+			try {
+				Date start_d = df.parse(startdate);
+				Date end_d = df.parse(enddate);
+				Calendar start_c = Calendar.getInstance();
+				Calendar end_c = Calendar.getInstance();
+				start_c.setTime(start_d);
+				end_c.setTime(end_d);
+				String year = String.valueOf(start_c.get(Calendar.YEAR));
+				String month = String.valueOf(start_c.get(Calendar.MONTH)+1);
+				String day = String.valueOf(start_c.get(Calendar.DAY_OF_MONTH));
+				if(month.length()<2) {month = "0"+month;}
+				if(day.length()<2) {day = "0"+day;}
+				dateList.add(year+month+day);
+				while(start_c.before(end_c)){
+					start_c.add(Calendar.DAY_OF_MONTH, 1);
+					System.out.println((start_c.get(Calendar.MONTH)+1)+"월 "+start_c.get(Calendar.DAY_OF_MONTH)+"일");
+					year = String.valueOf(start_c.get(Calendar.YEAR));
+					month = String.valueOf(start_c.get(Calendar.MONTH)+1);
+					if(month.length()<2) {month = "0"+month;}
+					day = String.valueOf(start_c.get(Calendar.DAY_OF_MONTH));
+					if(day.length()<2) {day = "0"+day;}
+					dateList.add(year+month+day);
+				}
+				System.out.println("날짜수 : "+dateList.size());
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		String command = "";
 		try {
 			if(cmd.equals("0")){
+				command = "?";
 			}else if(cmd.equals("1")){
-				command="?LKNTS_NM="+URLEncoder.encode("결핵병","utf-8");
+				command="?LKNTS_NM="+URLEncoder.encode("결핵병","utf-8")+"&";
 			}else if(cmd.equals("2")){
-				command="?LKNTS_NM="+URLEncoder.encode("고병원성조류인플루엔자","utf-8");
+				command="?LKNTS_NM="+URLEncoder.encode("고병원성조류인플루엔자","utf-8")+"&";
 			}else if(cmd.equals("3")){
-				command="?LKNTS_NM="+URLEncoder.encode("구제역","utf-8");
+				command="?LKNTS_NM="+URLEncoder.encode("구제역","utf-8")+"&";
 			}else if(cmd.equals("4")){
-				command="?LKNTS_NM="+URLEncoder.encode("돼지열병","utf-8");
+				command="?LKNTS_NM="+URLEncoder.encode("돼지열병","utf-8")+"&";
 			}else if(cmd.equals("5")){
-				command="?LKNTS_NM="+URLEncoder.encode("브루셀라병","utf-8");
+				command="?LKNTS_NM="+URLEncoder.encode("브루셀라병","utf-8")+"&";
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -198,56 +242,28 @@ public class Controller_Rest {
 		System.out.println(command);
 		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 		try {
-			String url = "http://data.mafra.go.kr:7080/openapi/59b8562426e598d34bad37835a94736c23205ab31f14808b6003978930bb873a/xml/Grid_20151204000000000316_1/1/5"+command;
-			DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-			Document document = docBuilder.parse(url);
-			Element rootElement = document.getDocumentElement();
-			
-			NodeList nodeList = rootElement.getElementsByTagName("totalCnt");
-			System.out.println("totalCnt : "+nodeList.item(0).getTextContent());
-			int lastIndex = Integer.parseInt(nodeList.item(0).getTextContent());
-			int firstIndex = 1;
-			if(lastIndex>=1000){
-				firstIndex = lastIndex-999;
-			}else{
-				firstIndex = 1;
-			}
-			String newUrl = "http://data.mafra.go.kr:7080/openapi/59b8562426e598d34bad37835a94736c23205ab31f14808b6003978930bb873a/xml/Grid_20151204000000000316_1/"+firstIndex+"/"+lastIndex+command;
-			System.out.println(newUrl);
-			document = docBuilder.parse(newUrl);
-			rootElement = document.getDocumentElement();
-			nodeList = rootElement.getElementsByTagName("row");
-			System.out.println("열 수 : "+nodeList.getLength());
-			
-			Calendar cal = Calendar.getInstance();
-			cal.add(Calendar.MONTH,-1);
-			System.out.println("기준날짜 : "+(cal.get(Calendar.MONTH)+1)+"/"+cal.get(Calendar.DAY_OF_MONTH));
-			for(int j=0;j<nodeList.getLength();j++){
-				NodeList childNodes = nodeList.item(j).getChildNodes();
-				for(int i=0;i<childNodes.getLength();i++){
-					Node info = childNodes.item(i);
-					if(info.getNodeType()==Node.ELEMENT_NODE){
-						String resLine="";
-						if(info.getNodeName().equals("OCCRRNC_DE")){
-							Element el = (Element)info;
-							SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-							Date d = df.parse(el.getTextContent());
-							System.out.println(d);
-							System.out.println(d.compareTo(cal.getTime()));
-							if(d.compareTo(cal.getTime())>=0){
-								String addrCode = childNodes.item(i-4).getTextContent().substring(0, 5)+"00000";
-								String addr = childNodes.item(i-2).getTextContent();
-								String diseaseName = childNodes.item(i-8).getTextContent();
-								String date = childNodes.item(i).getTextContent();
-								System.out.println(addrCode);		// 법정동 코드
-								System.out.println(addr);			// 실제 주소
-								System.out.println(diseaseName);	// 병명
-								System.out.println(date);			// 발병일
-								resLine += addrCode+","+addr+","+diseaseName+","+date;
-								res.add(resLine);
-							}
-						}
-					}
+			for(String k : dateList){
+				String url = "http://data.mafra.go.kr:7080/openapi/59b8562426e598d34bad37835a94736c23205ab31f14808b6003978930bb873a/xml/Grid_20151204000000000316_1/1/1000"+command+"OCCRRNC_DE="+k;
+				System.out.println(url);
+				DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+				Document document = docBuilder.parse(url);
+				Element rootElement = document.getDocumentElement();
+				NodeList nodeList = rootElement.getElementsByTagName("row");
+				System.out.println("열 수 : "+nodeList.getLength());
+				
+				for(int j=0;j<nodeList.getLength();j++){
+					NodeList childNodes = nodeList.item(j).getChildNodes();
+					String resLine="";
+					String addrCode = childNodes.item(9).getTextContent().substring(0, 5)+"00000";
+					String addr = childNodes.item(11).getTextContent();
+					String diseaseName = childNodes.item(5).getTextContent();
+					String date = childNodes.item(13).getTextContent();
+					System.out.println(addrCode);		// 법정동 코드
+					System.out.println(addr);			// 실제 주소
+					System.out.println(diseaseName);	// 병명
+					System.out.println(date);			// 발병일
+					resLine += addrCode+","+addr+","+diseaseName+","+date;
+					res.add(resLine);
 				}
 			}
 		} catch (Exception e) {
