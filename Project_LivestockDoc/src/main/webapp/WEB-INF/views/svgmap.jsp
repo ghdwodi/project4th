@@ -9,6 +9,9 @@
 		<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.18/themes/base/jquery-ui.css" type="text/css" />
 		<script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js"></script>
 		<script type="text/javascript">
+			$(function() {
+				$("#loadingdiv").hide();
+			})
 			/* $(function() {
 				jQuery.ajaxSettings.traditional = true;
 				$.ajax({
